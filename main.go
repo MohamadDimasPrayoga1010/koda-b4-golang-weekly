@@ -3,13 +3,21 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"main/handlers"
+	"main/utils"
 	"os"
 	"strconv"
 	"strings"
-	"main/handlers"
 )
 
 func main() {
+	defer func(){
+		if r := recover(); r!= nil{
+			fmt.Println("Error, Program error captured")
+			fmt.Println("But don’t worry, returning to the menu...")
+			main()
+		}
+	}()
 	reader := bufio.NewReader(os.Stdin)
 	menu := &handlers.Menu{}
 
@@ -25,10 +33,7 @@ func main() {
 		input = strings.TrimSpace(input)
 		choose, err := strconv.Atoi(input)
 		if err != nil {
-			fmt.Println("Input harus berupa angka!")
-			fmt.Println("Tekan Enter untuk mengisi ulang...")
-			reader.ReadString('\n')
-			continue
+			utils.SafePanic("Invalid input! Must be a number", reader)
 		}
 
 		switch choose {
@@ -39,12 +44,10 @@ func main() {
 		case 3:
 			handlers.HistoryOrder()
 		case 4:
-			fmt.Println("Terima kasih sudah belanja!")
+			fmt.Println("Thank you for shopping!")
 			os.Exit(0)
 		default:
-			fmt.Println("Pilihan tidak valid!")
-			fmt.Println("Tekan Enter untuk mengisi ulang...")
-			reader.ReadString('\n')
+			utils.SafePanic("Invalid input! Must be a number", reader)
 		}
 	}
 }
