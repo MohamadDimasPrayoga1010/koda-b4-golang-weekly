@@ -106,21 +106,25 @@ func PaymentShopping(reader *bufio.Reader) {
 		fmt.Printf("%d. %s\n", i+1, p)
 	}
 
-	fmt.Print("\nSelect payment method: ")
-	input, _ := reader.ReadString('\n')
-	input = strings.TrimSpace(input)
+	var selectedPayment string
+	for {
+		fmt.Print("\nSelect payment method: ")
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSpace(input)
 
-	choice, err := strconv.Atoi(input)
-	if err != nil || choice < 1 || choice > len(available) {
-		fmt.Println("\n Invalid choice!")
-		return
+		choice, err := strconv.Atoi(input)
+		if err != nil || choice < 1 || choice > len(available) {
+			fmt.Println("\nInvalid choice! Please try again.")
+			continue 
+		}
+
+		selectedPayment = strings.Split(available[choice-1], " ")[0]
+		break 
 	}
-
-	selectedPayment := strings.Split(available[choice-1], " ")[0]
 
 	fmt.Printf("\nProcessing your payment with %s...\n", selectedPayment)
 	rand.Seed(time.Now().UnixNano())
-	paymentTime := rand.Intn(3)
+	paymentTime := rand.Intn(5)
 	time.Sleep(time.Duration(paymentTime) * time.Second)
 
 	invoice := Invoice{
