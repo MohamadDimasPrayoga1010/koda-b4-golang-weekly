@@ -47,7 +47,7 @@ func main() {
 			fmt.Println("Thank you for shopping!")
 			os.Exit(0)
 		default:
-			utils.SafePanic("Invalid input! Must be a number", reader)
+			utils.SafePanic("Invalid input! select input 1 to 4", reader)
 		}
 	}
 }
