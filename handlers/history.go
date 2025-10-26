@@ -30,13 +30,15 @@ func HistoryOrder() {
 			for i, invoice := range History {
 				fmt.Printf("%d. Invoice: %s\n", i+1, invoice.InvoiceNumber)
 				fmt.Printf("Date: %s\n", invoice.Date.Format("02/01/2006 15:04"))
+				fmt.Printf("Items: %d\n", invoice.GetOrderCount()) 
 				fmt.Println("-------------------------------")
 
 				for j, order := range invoice.Orders {
-					subtotal := order.Item.Price * order.Quantity
+					subtotal := order.GetSubtotal()
 					fmt.Printf("%d. %s\n   Price: %s\n   Amount: %d\n   Subtotal: %s\n\n",
-						j+1, order.Item.Name,
-						utils.FormatInt64ToRp(int64(order.Item.Price)),
+						j+1, 
+						order.GetItemName(),
+						utils.FormatInt64ToRp(int64(order.GetItemPrice())),
 						order.Quantity,
 						utils.FormatInt64ToRp(int64(subtotal)))
 				}
