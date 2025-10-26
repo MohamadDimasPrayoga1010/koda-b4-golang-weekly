@@ -41,9 +41,9 @@ func (m *Menu) InputMenu() {
 		fmt.Println("\n=== Bangor Burger Menu List ===")
 		for _, menu := range MenuData {
 			fmt.Printf("%d. %s - %s\n",
-				menu.ID,
-				menu.Name,
-				utils.FormatInt64ToRp(int64(menu.Price)),
+				menu.GetID(),
+				menu.GetName(),
+				utils.FormatInt64ToRp(int64(menu.GetPrice())),
 			)
 		}
 		fmt.Println("0. Return to main menu")
@@ -51,13 +51,13 @@ func (m *Menu) InputMenu() {
 		if len(Orders) > 0 {
 			fmt.Println("\n===================== CURRENT ORDERS ===================== ")
 			total := 0
-			for i, o := range Orders {
-				sub := o.Item.Price * o.Quantity
+			for i, order := range Orders {
+				sub := order.GetSubtotal()
 				fmt.Printf("%d. %s - %s x%d = %s\n",
 					i+1,
-					o.Item.Name,
-					utils.FormatInt64ToRp(int64(o.Item.Price)),
-					o.Quantity,
+					order.GetItemName(),
+					utils.FormatInt64ToRp(int64(order.GetItemPrice())),
+					order.Quantity,
 					utils.FormatInt64ToRp(int64(sub)),
 				)
 				total += sub
@@ -80,7 +80,7 @@ func (m *Menu) InputMenu() {
 
 		var selectedMenu *Menu
 		for _, menu := range MenuData {
-			if menu.ID == menuID {
+			if menu.GetID() == menuID {
 				selectedMenu = &menu
 				break
 			}
@@ -90,7 +90,7 @@ func (m *Menu) InputMenu() {
 			utils.SafePanic("The menu was not found", reader)
 		}
 
-		fmt.Printf("How many %s what you want to buy : ", selectedMenu.Name)
+		fmt.Printf("How many %s what you want to buy : ", selectedMenu.GetName())
 		qtyInput, _ := reader.ReadString('\n')
 		qtyInput = strings.TrimSpace(qtyInput)
 		qty, err := strconv.Atoi(qtyInput)
@@ -104,11 +104,11 @@ func (m *Menu) InputMenu() {
 		}
 		Orders = append(Orders, order)
 
-		subtotal := selectedMenu.Price * qty
+		subtotal := order.GetSubtotal()
 		fmt.Println("\n============================================================")
 		fmt.Printf("%d x %s added to the order!\nSubtotal: %s\n",
 			qty,
-			selectedMenu.Name,
+			selectedMenu.GetName(),
 			utils.FormatInt64ToRp(int64(subtotal)),
 		)
 		fmt.Println("============================================================")
