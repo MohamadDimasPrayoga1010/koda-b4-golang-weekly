@@ -1,0 +1,56 @@
+name: Build and Release Burger Bangor POS 
+run-name: Build and Release Burger Bangor POS Application on Tag Push
+
+on:
+  push:
+    tags:
+      - "v*.*.*" 
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.3"
+          cache: false
+
+      - name: Build for all platforms
+        run: |
+          mkdir -p dist
+          VERSION=${GITHUB_REF_NAME}
+
+          echo "🚀 Building version $VERSION..."
+
+          # Windows
+          GOOS=windows GOARCH=amd64 go build -o dist/mixuepos_${VERSION}_windows_amd64.exe .
+          
+          # Linux AMD64
+          GOOS=linux GOARCH=amd64 go build -o dist/mixuepos_${VERSION}_linux_amd64 .
+          
+          # Linux ARM64
+          GOOS=linux GOARCH=arm64 go build -o dist/mixuepos_${VERSION}_linux_arm64 .
+          
+          # macOS ARM64
+          GOOS=darwin GOARCH=arm64 go build -o dist/mixuepos_${VERSION}_darwin_arm64 .
+
+          echo "✅ Build complete. Files in ./dist"
+
+      - name: List build outputs
+        run: ls -lh dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false
