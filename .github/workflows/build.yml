@@ -4,7 +4,7 @@ run-name: Build and Release Burger Bangor POS Application on Tag Push
 on:
   push:
     tags:
-      - "v*.*.*" 
+      - "v*" 
 
 permissions:
   contents: write
@@ -31,18 +31,18 @@ jobs:
           echo "🚀 Building version $VERSION..."
 
           # Windows
-          GOOS=windows GOARCH=amd64 go build -o dist/mixuepos_${VERSION}_windows_amd64.exe .
+          GOOS=windows GOARCH=amd64 go build -o dist/burgerbangor_${VERSION}_windows_amd64.exe .
           
           # Linux AMD64
-          GOOS=linux GOARCH=amd64 go build -o dist/mixuepos_${VERSION}_linux_amd64 .
+          GOOS=linux GOARCH=amd64 go build -o dist/burgerbangor_${VERSION}_linux_amd64 .
           
           # Linux ARM64
-          GOOS=linux GOARCH=arm64 go build -o dist/mixuepos_${VERSION}_linux_arm64 .
+          GOOS=linux GOARCH=arm64 go build -o dist/burgerbangor_${VERSION}_linux_arm64 .
           
           # macOS ARM64
-          GOOS=darwin GOARCH=arm64 go build -o dist/mixuepos_${VERSION}_darwin_arm64 .
+          GOOS=darwin GOARCH=arm64 go build -o dist/burgerbangor_${VERSION}_darwin_arm64 .
 
-          echo "✅ Build complete. Files in ./dist"
+          echo "Build complete. Files in ./dist"
 
       - name: List build outputs
         run: ls -lh dist
