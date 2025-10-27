@@ -39,7 +39,7 @@ func (m *Menu) InputMenu() {
 		return
 	} else {
 		age := time.Since(info.ModTime())
-		if age >= 15*time.Minute {
+		if age >= 15*time.Second {
 			fmt.Println("Cache expired, fetching data baru...")
 			resp, err := http.Get("https://raw.githubusercontent.com/MohamadDimasPrayoga1010/koda-b4-golang-weekly-data/refs/heads/main/data.json")
 			if err != nil {
