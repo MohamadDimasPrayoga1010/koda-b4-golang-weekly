@@ -2,30 +2,39 @@ package handlers
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"io"
 	"main/utils"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
 )
 
-var MenuData = []Menu{
-	{ID: 1, Name: "Bangor Pitik Lava", Price: 29000},
-	{ID: 2, Name: "Bangor Pitik Lava Premium", Price: 29000},
-	{ID: 3, Name: "Bangor Cheese Lava", Price: 31000},
-	{ID: 4, Name: "Bangor Lava Sausage", Price: 27500},
-	{ID: 5, Name: "Bangor Jelata Cheese", Price: 24700},
-	{ID: 6, Name: "Bangor Juragan Cheese", Price: 31700},
-	{ID: 7, Name: "Bangor Ningrat Cheese", Price: 49200},
-	{ID: 8, Name: "Bangor Juragan", Price: 29000},
-	{ID: 9, Name: "Bangor Ningrat", Price: 44200},
-	{ID: 10, Name: "Bangor Sultan", Price: 55500},
-	{ID: 11, Name: "Bangor Fish", Price: 27500},
-	{ID: 12, Name: "Tea", Price: 9500},
-	{ID: 13, Name: "Soft Drink", Price: 10500},
-}
-
 func (m *Menu) InputMenu() {
+
+	resp, err := http.Get("https://raw.githubusercontent.com/MohamadDimasPrayoga1010/koda-b4-golang-weekly-data/refs/heads/main/data.json")
+
+	if err != nil {
+		fmt.Println("Failed fetch data")
+	}
+
+	body, err := io.ReadAll(
+		resp.Body,
+	)
+
+	var menuData []Menu
+
+	if err != nil {
+		fmt.Println("Failed to read body")
+	}
+
+	err = json.Unmarshal(body, &menuData)
+
+	if err != nil {
+		fmt.Println("Failed to parse data")
+	}
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -35,11 +44,11 @@ func (m *Menu) InputMenu() {
 		}
 	}()
 	reader := bufio.NewReader(os.Stdin)
-
+		
 	for {
 		fmt.Printf("\x1bc")
 		fmt.Println("\n=== Bangor Burger Menu List ===")
-		for _, menu := range MenuData {
+		for _, menu := range menuData {
 			fmt.Printf("%d. %s - %s\n",
 				menu.GetID(),
 				menu.GetName(),
@@ -79,7 +88,7 @@ func (m *Menu) InputMenu() {
 		}
 
 		var selectedMenu *Menu
-		for _, menu := range MenuData {
+		for _, menu := range menuData {
 			if menu.GetID() == menuID {
 				selectedMenu = &menu
 				break
