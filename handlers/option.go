@@ -10,7 +10,7 @@ import (
 
 func Option() {
 
-	tempDir := os.TempDir()
+	tempDir := filepath.Join(os.TempDir(), "burgerbangor")
 	cacheFile := filepath.Join(tempDir, "data.json")
 
 	reader := bufio.NewReader(os.Stdin)
