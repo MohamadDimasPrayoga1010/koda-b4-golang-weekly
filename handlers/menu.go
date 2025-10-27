@@ -8,32 +8,68 @@ import (
 	"main/utils"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func (m *Menu) InputMenu() {
 
-	resp, err := http.Get("https://raw.githubusercontent.com/MohamadDimasPrayoga1010/koda-b4-golang-weekly-data/refs/heads/main/data.json")
-
-	if err != nil {
-		fmt.Println("Failed fetch data")
-	}
-
-	body, err := io.ReadAll(
-		resp.Body,
-	)
+	tempDir := os.TempDir()
+	cacheFile := filepath.Join(tempDir, "data.json")
 
 	var menuData []Menu
 
-	if err != nil {
-		fmt.Println("Failed to read body")
-	}
+	info, err := os.Stat(cacheFile)
+	if os.IsNotExist(err) {
+		fmt.Println("File cache tidak ada, fetching data...")
+		resp, err := http.Get("https://raw.githubusercontent.com/MohamadDimasPrayoga1010/koda-b4-golang-weekly-data/refs/heads/main/data.json")
+		if err != nil {
+			fmt.Println("Failed fetch data:", err)
+			return
+		}
+		defer resp.Body.Close()
 
-	err = json.Unmarshal(body, &menuData)
+		body, _ := io.ReadAll(resp.Body)
+		json.Unmarshal(body, &menuData)
+		os.WriteFile(cacheFile, body, 0644)
+	} else if err != nil {
+		fmt.Println("Error cek cache:", err)
+		return
+	} else {
+		age := time.Since(info.ModTime())
+		if age >= 15*time.Minute {
+			fmt.Println("Cache expired, fetching data baru...")
+			resp, err := http.Get("https://raw.githubusercontent.com/MohamadDimasPrayoga1010/koda-b4-golang-weekly-data/refs/heads/main/data.json")
+			if err != nil {
+				fmt.Println("Failed fetch data:", err)
+				return
+			}
+			defer resp.Body.Close()
 
-	if err != nil {
-		fmt.Println("Failed to parse data")
+			body, _ := io.ReadAll(resp.Body)
+			json.Unmarshal(body, &menuData)
+			os.WriteFile(cacheFile, body, 0644)
+		} else {
+			fmt.Println("Mengambil data dari cache")
+			body, err := os.ReadFile(cacheFile)
+			if err != nil {
+				fmt.Println("Gagal baca cache, fetching data baru...")
+				resp, err := http.Get("https://raw.githubusercontent.com/MohamadDimasPrayoga1010/koda-b4-golang-weekly-data/refs/heads/main/data.json")
+				if err != nil {
+					fmt.Println("Failed fetch data:", err)
+					return
+				}
+				defer resp.Body.Close()
+
+				body, _ := io.ReadAll(resp.Body)
+				json.Unmarshal(body, &menuData)
+				os.WriteFile(cacheFile, body, 0644)
+			} else {
+				json.Unmarshal(body, &menuData)
+			}
+		}
 	}
 
 	defer func() {
@@ -44,7 +80,7 @@ func (m *Menu) InputMenu() {
 		}
 	}()
 	reader := bufio.NewReader(os.Stdin)
-		
+
 	for {
 		fmt.Printf("\x1bc")
 		fmt.Println("\n=== Bangor Burger Menu List ===")
