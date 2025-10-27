@@ -16,7 +16,16 @@ import (
 
 func (m *Menu) InputMenu() {
 
-	tempDir := os.TempDir()
+	tempDir := filepath.Join(os.TempDir(), "burgerbangor")
+
+	if _, err := os.Stat(tempDir); os.IsNotExist(err) {
+		if err := os.MkdirAll(tempDir, 0755); err != nil {
+			fmt.Println("Gagal membuat folder cache:", err)
+			return
+		}
+	}
+
+	// tempDir := os.TempDir()
 	cacheFile := filepath.Join(tempDir, "data.json")
 
 	var menuData []Menu
