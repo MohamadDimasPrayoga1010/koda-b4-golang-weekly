@@ -20,6 +20,7 @@ func (m *Menu) InputMenu() {
 	cacheFile := filepath.Join(tempDir, "data.json")
 
 	var menuData []Menu
+	cacheTIME := GetCache()
 
 	info, err := os.Stat(cacheFile)
 	if os.IsNotExist(err) {
@@ -39,7 +40,7 @@ func (m *Menu) InputMenu() {
 		return
 	} else {
 		age := time.Since(info.ModTime())
-		if age >= 15*time.Second {
+		if age >= cacheTIME {
 			fmt.Println("Cache expired, fetching data baru...")
 			resp, err := http.Get("https://raw.githubusercontent.com/MohamadDimasPrayoga1010/koda-b4-golang-weekly-data/refs/heads/main/data.json")
 			if err != nil {
