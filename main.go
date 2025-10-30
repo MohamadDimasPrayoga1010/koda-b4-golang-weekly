@@ -27,8 +27,8 @@ func main() {
 		fmt.Println("\n1. Menu")
 		fmt.Println("2. Checkout")
 		fmt.Println("3. History")
-		fmt.Println("4. Option")
-		fmt.Println("5. Exit")
+		// fmt.Println("4. Option")
+		fmt.Println("4. Exit")
 		fmt.Print("\nPilih Input: ")
 
 		input, _ := reader.ReadString('\n')
@@ -45,9 +45,9 @@ func main() {
 			handlers.Checkout()
 		case 3:
 			handlers.HistoryOrder()
+		// case 4:
+		// 	handlers.Option()
 		case 4:
-			handlers.Option()
-		case 5:
 			fmt.Println("Thank you for shopping!")
 			os.Exit(0)
 		default:
