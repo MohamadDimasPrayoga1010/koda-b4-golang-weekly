@@ -2,85 +2,28 @@ package handlers
 
 import (
 	"bufio"
-	"encoding/json"
+	"context"
 	"fmt"
-	"io"
+	"github.com/jackc/pgx/v5"
+	"github.com/joho/godotenv"
 	"main/utils"
-	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 )
 
 func (m *Menu) InputMenu() {
-
-	tempDir := filepath.Join(os.TempDir(), "burgerbangor")
-
-	if _, err := os.Stat(tempDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(tempDir, 0755); err != nil {
-			fmt.Println("Gagal membuat folder cache:", err)
-			return
-		}
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Failed to load .env")
 	}
 
-	// tempDir := os.TempDir()
-	cacheFile := filepath.Join(tempDir, "data.json")
-
-	var menuData []Menu
-	cacheTIME := GetCache()
-
-	info, err := os.Stat(cacheFile)
-	if os.IsNotExist(err) {
-		fmt.Println("File cache tidak ada, fetching data...")
-		resp, err := http.Get("https://raw.githubusercontent.com/MohamadDimasPrayoga1010/koda-b4-golang-weekly-data/refs/heads/main/data.json")
-		if err != nil {
-			fmt.Println("Failed fetch data:", err)
-			return
-		}
-		defer resp.Body.Close()
-
-		body, _ := io.ReadAll(resp.Body)
-		json.Unmarshal(body, &menuData)
-		os.WriteFile(cacheFile, body, 0644)
-	} else if err != nil {
-		fmt.Println("Error cek cache:", err)
+	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	if err != nil {
+		fmt.Println("Failed to connect:", err)
 		return
-	} else {
-		age := time.Since(info.ModTime())
-		if age >= cacheTIME {
-			fmt.Println("Cache expired, fetching data baru...")
-			resp, err := http.Get("https://raw.githubusercontent.com/MohamadDimasPrayoga1010/koda-b4-golang-weekly-data/refs/heads/main/data.json")
-			if err != nil {
-				fmt.Println("Failed fetch data:", err)
-				return
-			}
-			defer resp.Body.Close()
-
-			body, _ := io.ReadAll(resp.Body)
-			json.Unmarshal(body, &menuData)
-			os.WriteFile(cacheFile, body, 0644)
-		} else {
-			fmt.Println("Mengambil data dari cache")
-			body, err := os.ReadFile(cacheFile)
-			if err != nil {
-				fmt.Println("Gagal baca cache, fetching data baru...")
-				resp, err := http.Get("https://raw.githubusercontent.com/MohamadDimasPrayoga1010/koda-b4-golang-weekly-data/refs/heads/main/data.json")
-				if err != nil {
-					fmt.Println("Failed fetch data:", err)
-					return
-				}
-				defer resp.Body.Close()
-
-				body, _ := io.ReadAll(resp.Body)
-				json.Unmarshal(body, &menuData)
-				os.WriteFile(cacheFile, body, 0644)
-			} else {
-				json.Unmarshal(body, &menuData)
-			}
-		}
 	}
+	defer conn.Close(context.Background())
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -89,9 +32,31 @@ func (m *Menu) InputMenu() {
 			m.InputMenu()
 		}
 	}()
+
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
+
+		rows, err := conn.Query(context.Background(),
+			"SELECT id, name, price, created_at, updated_at FROM products ORDER BY id ASC",
+		)
+		if err != nil {
+			fmt.Println("Failed to get data:", err)
+			return
+		}
+		defer rows.Close()
+
+		var menuData []Menu
+		for rows.Next() {
+			var p Menu
+			err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.CreatedAt, &p.UpdatedAt)
+			if err != nil {
+				fmt.Println("Failed to scan data:", err)
+				return
+			}
+			menuData = append(menuData, p)
+		}
+
 		fmt.Printf("\x1bc")
 		fmt.Println("\n=== Bangor Burger Menu List ===")
 		for _, menu := range menuData {
