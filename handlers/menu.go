@@ -34,9 +34,8 @@ func (m *Menu) InputMenu() {
 	}()
 
 	reader := bufio.NewReader(os.Stdin)
-
+	userID := 1 
 	for {
-
 		rows, err := conn.Query(context.Background(),
 			"SELECT id, name, price, created_at, updated_at FROM products ORDER BY id ASC",
 		)
@@ -44,7 +43,6 @@ func (m *Menu) InputMenu() {
 			fmt.Println("Failed to get data:", err)
 			return
 		}
-		defer rows.Close()
 
 		var menuData []Menu
 		for rows.Next() {
@@ -56,6 +54,7 @@ func (m *Menu) InputMenu() {
 			}
 			menuData = append(menuData, p)
 		}
+		rows.Close()
 
 		fmt.Printf("\x1bc")
 		fmt.Println("\n=== Bangor Burger Menu List ===")
@@ -110,7 +109,7 @@ func (m *Menu) InputMenu() {
 			utils.SafePanic("The menu was not found", reader)
 		}
 
-		fmt.Printf("How many %s what you want to buy : ", selectedMenu.GetName())
+		fmt.Printf("How many %s you want to buy : ", selectedMenu.GetName())
 		qtyInput, _ := reader.ReadString('\n')
 		qtyInput = strings.TrimSpace(qtyInput)
 		qty, err := strconv.Atoi(qtyInput)
@@ -123,6 +122,15 @@ func (m *Menu) InputMenu() {
 			Quantity: qty,
 		}
 		Orders = append(Orders, order)
+
+		_, err = conn.Exec(context.Background(),
+			`INSERT INTO cart (user_id, product_id, quantity) VALUES ($1, $2, $3)
+			 ON CONFLICT (user_id, product_id) DO UPDATE SET quantity = cart.quantity + EXCLUDED.quantity`,
+			userID, selectedMenu.GetID(), qty,
+		)
+		if err != nil {
+			fmt.Println("Failed to insert/update cart:", err)
+		}
 
 		subtotal := order.GetSubtotal()
 		fmt.Println("\n============================================================")
@@ -137,3 +145,4 @@ func (m *Menu) InputMenu() {
 		reader.ReadString('\n')
 	}
 }
+
